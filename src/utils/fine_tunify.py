@@ -36,6 +36,17 @@ def ft(model_name, model_ft, num_classes, additional_hidden=0):
         model_ft.classifier[1] = nn.Linear(num_ftrs, num_classes)
         input_size = 224
     else:
-        raise ValueError("Invalid model type, exiting...")
+        num_ftrs = model_ft.head.in_features
+        # The two cases are split just to allow loading
+        # models trained prior to adding the additional_hidden argument
+        # without errors
+        if additional_hidden == 0:
+            model_ft.head = nn.Linear(num_ftrs, num_classes)
+        else:
+            model_ft.head = SequentialWithArgs(
+                *list(sum([[nn.Linear(num_ftrs, num_ftrs), nn.ReLU()] for i in range(additional_hidden)], [])),
+                nn.Linear(num_ftrs, num_classes)
+            )
+        input_size = 224
 
     return model_ft

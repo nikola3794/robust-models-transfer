@@ -41,7 +41,7 @@ python src/main.py --arch resnet18 \
   --dataset aircraft \
   --data ${TMPDIR}/fgvc-aircraft-2013b \
   --out-dir /cluster/work/cvl/specta/experiment_logs/robust-transfer \
-  --exp-name aircraft-vit-rnd \
+  --exp-name aircraft-vit-rnd-param \
   --epochs 150 \
   --lr 0.01 \
   --step-lr 50 \

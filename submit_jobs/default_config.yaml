@@ -1,0 +1,57 @@
+#arch='resnet18'
+#model_path='/srv/beegfs02/scratch/hl_task_prediction/data/nikola/models/robust-models-transfer/resnet-18-l2-eps3.ckpt'
+exp_name: cifar10-transfer-demo
+out_dir: /srv/beegfs02/scratch/hl_task_prediction/data/nikola/experiment_logs/robust-transfer/
+
+dataset: aircraft
+data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/fgvc-aircraft-2013b/
+data_aug: Null
+workers: 8
+
+arch: vit_deit_small_patch16_224
+model_path: /home/nipopovic/Projects/euler/work_specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar
+pytorch_pretrained: False
+
+min_slope: 0.0
+max_slope: 2.5
+rnd_act: False
+
+freeze_level: -1
+no_replace_last_layer: False
+additional_hidden: 0
+cifar10_cifar10: False
+
+eval_only: Null
+epochs: 1
+batch_size: 4
+optimizer: sgd
+lr: 0.01
+step_lr: 30
+step_lr_gamma: Null
+weight_decay: 5e-4
+momentum: Null
+custom_eps_multiplier: Null
+custom_lr_multiplier: Null
+lr_interpolation: Null
+mixed_precision: Null
+
+# <-------------- ??????????????
+constraint: Null 
+subset: Null
+use_best: Null
+resume: False
+resume_optimizer: Null
+# <-------------- ??????????????
+
+no_tqdm: 1
+per_class_accuracy: False
+save_ckpt_iters: Null
+log_iters: Null
+
+adv_train: 0
+eps: Null
+adv_eval: Null
+attack_lr: Null
+attack_steps: Null
+random_start: Null
+random_restarts: Null

@@ -1,7 +1,8 @@
+from re import M
 import torch as ch
 import numpy as np
 import torch.nn as nn
-from torch.optim import SGD, lr_scheduler
+from torch.optim import SGD, AdamW, lr_scheduler
 from torchvision.utils import make_grid
 from cox.utils import Parameters
 
@@ -79,8 +80,14 @@ def make_optimizer_and_schedule(args, model, checkpoint, params):
     """
     # Make optimizer
     param_list = model.parameters() if params is None else params
-    optimizer = SGD(param_list, args.lr, momentum=args.momentum,
-                                weight_decay=args.weight_decay)
+    if args.optimizer.lower() == "sgd":
+        optimizer = SGD(param_list, args.lr, momentum=args.momentum,
+                                    weight_decay=args.weight_decay)
+    elif args.optimizer.lower() == "adamw":
+        optimizer = AdamW(param_list, args.lr,weight_decay=args.weight_decay)
+    else:
+        raise NotImplementedError
+
 
     if args.mixed_precision:
         model.to('cuda')
@@ -371,6 +378,27 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
             save_checkpoint(consts.CKPT_NAME_LATEST)
             if is_best: save_checkpoint(consts.CKPT_NAME_BEST)
 
+            if last_epoch:
+                with open(os.path.join(args.out_dir, args.exp_name, 'results.txt'), 'w') as fh:
+                    exp_info = {
+                        "exp_name": args.exp_name,
+                        "out_dir": args.out_dir,
+                        "dataset": args.dataset,
+                        "data": args.data,
+                        "data_aug": args.data_aug,
+                        "arch": args.arch,
+                        "model_path": args.model_path
+                    }
+                    fh.write('Experiment info\n')
+                    fh.write('-------------------------------------------------------\n')
+                    for k in exp_info:
+                        fh.write(f'{k}: {exp_info[k]}\n')
+                    fh.write('\n\n\n')
+                    fh.write('Log info\n')
+                    fh.write('-------------------------------------------------------\n')
+                    for k in log_info:
+                        fh.write(f'{k}: {log_info[k]}\n')
+
         if schedule: schedule.step()
         if has_attr(args, 'epoch_hook'): args.epoch_hook(model, log_info)
 
@@ -442,10 +470,15 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer):
 
     iterator = tqdm(enumerate(loader), total=len(loader))
     for i, (inp, target) in iterator:
+        # if i == 3:
+        #     break
        # measure data loading time
         target = target.cuda(non_blocking=True)
-        output, final_inp = model(inp, target=target, make_adv=adv,
-                                  **attack_kwargs)
+        # # TODO Nikola: Modified this
+        # output, final_inp = model(inp, target=target, make_adv=adv,
+        #                           **attack_kwargs)
+        output, final_inp = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
+
         loss = train_criterion(output, target)
 
         if len(loss.shape) > 0: loss = loss.mean()

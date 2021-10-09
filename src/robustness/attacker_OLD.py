@@ -272,8 +272,10 @@ class AttackerModel(ch.nn.Module):
         super(AttackerModel, self).__init__()
         self.normalizer = helpers.InputNormalize(dataset.mean, dataset.std)
         self.model = model
+        self.attacker = Attacker(model, dataset)
 
-    def forward(self, inp, min_slope=0.0, max_slope=1.0, rnd_act=False):
+    def forward(self, inp, target=None, make_adv=False, with_latent=False,
+                fake_relu=False, no_relu=False, with_image=True, **attacker_kwargs):
         """
         Main function for running inference and generating adversarial
         examples for a model.
@@ -304,17 +306,25 @@ class AttackerModel(ch.nn.Module):
                 (even if :samp:`make_adv == True`).
 
         """
-        # if make_adv:
-        #     assert target is not None
-        #     prev_training = bool(self.training)
-        #     self.eval()
-        #     adv = self.attacker(inp, target, **attacker_kwargs)
-        #     if prev_training:
-        #         self.train()
+        if make_adv:
+            assert target is not None
+            prev_training = bool(self.training)
+            self.eval()
+            adv = self.attacker(inp, target, **attacker_kwargs)
+            if prev_training:
+                self.train()
 
-        #     inp = adv
+            inp = adv
 
         normalized_inp = self.normalizer(inp)
 
-        output = self.model(normalized_inp, min_slope=min_slope, max_slope=max_slope, rnd_act=rnd_act)
-        return (output, inp)
+        if no_relu and (not with_latent):
+            print("WARNING: 'no_relu' has no visible effect if 'with_latent is False.")
+        if no_relu and fake_relu:
+            raise ValueError("Options 'no_relu' and 'fake_relu' are exclusive")
+
+        output = self.model(normalized_inp, with_latent=with_latent,
+                                fake_relu=fake_relu, no_relu=no_relu)
+        if with_image:
+            return (output, inp)
+        return output

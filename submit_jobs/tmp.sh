@@ -8,7 +8,12 @@
 #BSUB -J "tmp"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
+DATA_SET=aircraft
 DATA_SET_DIR=fgvc-aircraft-2013b
+ARCH=vit_deit_small_patch16_224
+MIN_SLOPE=0.0
+MAX_SLOPE=2.5
+RND_ACT=True
 
 # Activate python environment
 source /cluster/project/cvl/specta/python_envs/robust-transfer/bin/activate
@@ -37,11 +42,14 @@ pwd
 # MASTER_PORT=$((29000 + $RND))
 # echo "Master port: ${MASTER_PORT}"
 
-python src/main.py --arch resnet18 \
-  --dataset aircraft \
+EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}
+
+python src/main_new.py \
+  --arch resnet18 \
+  --dataset $DATA_SET \
   --data ${TMPDIR}/fgvc-aircraft-2013b \
   --out-dir /cluster/work/cvl/specta/experiment_logs/robust-transfer \
-  --exp-name aircraft-vit-rnd \
+  --exp-name $EXP_NAME \
   --epochs 150 \
   --lr 0.01 \
   --step-lr 50 \

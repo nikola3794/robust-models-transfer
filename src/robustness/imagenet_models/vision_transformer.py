@@ -161,8 +161,16 @@ class Mlp(nn.Module):
         self.fc2 = nn.Linear(hidden_features, out_features)
         self.drop = nn.Dropout(drop)
 
-    def forward(self, x):
+    def forward(self, x, min_slope, max_slope, rnd_act):
         x = self.fc1(x)
+
+        if rnd_act:
+            slope_tmp = torch.empty((1, 1, x.shape[2]), dtype=x.dtype, device=x.device)
+            slope_tmp.uniform_(min_slope, max_slope)
+        else:
+            slope_tmp = max_slope
+        x = slope_tmp * x
+
         x = self.act(x)
         x = self.drop(x)
         x = self.fc2(x)
@@ -218,9 +226,9 @@ class Block(nn.Module):
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
 
-    def forward(self, x):
+    def forward(self, x, min_slope, max_slope, rnd_act):
         x = x + self.drop_path(self.attn(self.norm1(x)))
-        x = x + self.drop_path(self.mlp(self.norm2(x)))
+        x = x + self.drop_path(self.mlp(self.norm2(x), min_slope=min_slope, max_slope=max_slope, rnd_act=rnd_act))
         return x
 
 
@@ -359,7 +367,7 @@ class VisionTransformer(nn.Module):
         if self.num_tokens == 2:
             self.head_dist = nn.Linear(self.embed_dim, self.num_classes) if num_classes > 0 else nn.Identity()
 
-    def forward_features(self, x):
+    def forward_features(self, x, min_slope, max_slope, rnd_act):
         x = self.patch_embed(x)
         cls_token = self.cls_token.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
         if self.dist_token is None:
@@ -367,18 +375,17 @@ class VisionTransformer(nn.Module):
         else:
             x = torch.cat((cls_token, self.dist_token.expand(x.shape[0], -1, -1), x), dim=1)
         x = self.pos_drop(x + self.pos_embed)
-        x = self.blocks(x)
+        # x = self.blocks(x)
+        for block in self.blocks:
+            x = block(x, min_slope=min_slope, max_slope=max_slope, rnd_act=rnd_act)
         x = self.norm(x)
         if self.dist_token is None:
             return self.pre_logits(x[:, 0])
         else:
             return x[:, 0], x[:, 1]
 
-    def _forward(self, x, with_latent=False, fake_relu=False, no_relu=False):
-        assert fake_relu is False
-        assert no_relu is False
-        
-        pre_out = self.forward_features(x)
+    def _forward(self, x, min_slope=0.0, max_slope=1.0, rnd_act=False):
+        pre_out = self.forward_features(x, min_slope=min_slope, max_slope=max_slope, rnd_act=rnd_act)
         if self.head_dist is not None:
             raise AssertionError
             # x, x_dist = self.head(pre_out[0]), self.head_dist(pre_out[1])  # x must be a tuple
@@ -389,9 +396,6 @@ class VisionTransformer(nn.Module):
             #     return (x + x_dist) / 2
         else:
             x = self.head(pre_out)
-        
-        if with_latent:
-            return x, pre_out
         return x
 
     # Allow for accessing forward method in a inherited class

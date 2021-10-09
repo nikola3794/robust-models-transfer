@@ -13,6 +13,15 @@ from torchvision import models
 from utils import constants as cs
 from utils import fine_tunify, transfer_datasets
 
+import yaml
+
+
+yaml_default_cfg_pth = "/srv/beegfs02/scratch/hl_task_prediction/data/nikola/code/robust-models-transfer/submit_jobs/default_config.yaml"
+config_parser = parser = argparse.ArgumentParser(description='Training Config', add_help=False)
+parser.add_argument('--config', default=yaml_default_cfg_pth, type=str, metavar='FILE',
+                    help='YAML config file specifying default arguments')
+
+
 parser = argparse.ArgumentParser(description='Transfer learning via pretrained Imagenet models',
                                  conflict_handler='resolve')
 parser = defaults.add_args_to_parser(defaults.CONFIG_ARGS, parser)
@@ -43,6 +52,10 @@ parser.add_argument('--additional-hidden', type=int, default=0,
 parser.add_argument('--per-class-accuracy', action='store_true', help='Report the per-class accuracy. '
                     'Can be used only with pets, caltech101, caltech256, aircraft, and flowers.')
 
+parser.add_argument('--min-slope', type=float, default=0.0)
+parser.add_argument('--max-slope', type=float, default=1.0)
+parser.add_argument('--rnd-act', type=bool, default=False)
+parser.add_argument('--optimizer', type=str, default='sgd')
 
 def main(args, store):
     '''Given arguments and a cox store, trains as a model. Check out the 
@@ -68,7 +81,17 @@ def main(args, store):
 
     update_params = freeze_model(model, freeze_level=args.freeze_level)
 
-    print(f"Dataset: {args.dataset} | Model: {args.arch}")
+    print(f"**********************************************************")
+    print(f"Exp name: {args.exp_name}")
+    print(f"Out dir: {args.out_dir}")
+    
+    print(f"Dataset: {args.dataset}")
+    print(f"Data: {args.data}")
+    print(f"Data aug: {args.data_aug}")
+
+    print(f"Arch: {args.arch}")
+    print(f"Model path: {args.model_path}")
+    print(f"**********************************************************")
     train.train_model(args, model, (train_loader, validation_loader), store=store,
                       checkpoint=checkpoint, update_params=update_params)
 
@@ -262,24 +285,20 @@ def args_preprocess(args):
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    # TODO <----------------------------------------------------------- TMP
-    #args.arch='vit_deit_small_patch16_224'
-    #args.model_path='/home/nipopovic/Projects/euler/work_specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar'
-    args.arch='resnet18'
-    args.model_path='/srv/beegfs02/scratch/hl_task_prediction/data/nikola/models/robust-models-transfer/resnet-18-l2-eps3.ckpt'
-    args.dataset='aircraft'
-    args.data='/srv/beegfs02/scratch/hl_task_prediction/data/data_sets/fgvc-aircraft-2013b/'
-    args.out_dir='/srv/beegfs02/scratch/hl_task_prediction/data/nikola/experiment_logs/robust-transfer/'
-    args.exp_name='cifar10-transfer-demo'
-    args.epochs=150
-    args.lr=0.01
-    args.step_lr=30
-    args.batch_size=4
-    args.weight_decay=5e-4
-    args.adv_train=0
-    args.freeze_level=-1
-    # TODO <----------------------------------------------------------- TMP
+    # Do we have a config file to parse?
+    args_config, remaining = config_parser.parse_known_args()
+    if args_config.config:
+        assert os.path.isfile(args_config.config)
+        with open(args_config.config, 'r') as f:
+            cfg = yaml.safe_load(f)
+            if cfg is not None:
+                parser.set_defaults(**cfg)
+
+    # The main arg parser parses the rest of the args, the usual
+    # defaults will have been overridden if config file specified.
+    args = parser.parse_args(remaining)
+
+    # Preprocess arguments
     args = args_preprocess(args)
 
     pytorch_models = {

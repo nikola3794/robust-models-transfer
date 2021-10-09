@@ -105,7 +105,7 @@ def make_and_restore_model(*_, arch, dataset, resume_path=None,
         else:
             # Importing from timm library
             sd = {f'model.{k}':v for k,v in sd.items()}
-            del model.attacker
+            #del model.attacker
             del sd['model.head.weight']
             del sd['model.head.bias']
             model.load_state_dict(sd, strict=False)

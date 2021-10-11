@@ -28,7 +28,7 @@ class Caltech101(VisionDataset):
 
     def __init__(self, root, target_type="category", transform=None,
                  target_transform=None, download=False):
-        super(Caltech101, self).__init__(os.path.join(root, 'caltech101'),
+        super(Caltech101, self).__init__(os.path.join(root),
                                          transform=transform,
                                          target_transform=target_transform)
         os.makedirs(self.root, exist_ok=True)

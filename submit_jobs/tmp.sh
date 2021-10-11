@@ -19,46 +19,47 @@ then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
   DATA_SET_DIR=fgvc-aircraft-2013b
 elif [$DATA_SET == "birds"]
+then
   ZIP_FILE_NAME=birdsnap.tar
   DATA_SET_DIR=birdsnap
-then
 elif [$DATA_SET == "caltech101"]
+then
   ZIP_FILE_NAME=caltech101.tar
   DATA_SET_DIR=caltech101
-then
 elif [$DATA_SET == "caltech256"]
+then
   ZIP_FILE_NAME=caltech256.tar
   DATA_SET_DIR=caltech256
-then
 elif [$DATA_SET == "cifar10"]
+then
   ZIP_FILE_NAME=todo # TODO
   DATA_SET_DIR=todo # TODO
-then
 elif [$DATA_SET == "cifar100"]
+then
   ZIP_FILE_NAME=todo #TODO
   DATA_SET_DIR=todo # TODO
-then
 elif [$DATA_SET == "dtd"]
+then
   ZIP_FILE_NAME=dtd.tar
   DATA_SET_DIR=dtd
-then
 elif [$DATA_SET == "flowers"]
+then
   ZIP_FILE_NAME=flowers.tar
   DATA_SET_DIR=flowers_new
-then
 elif [$DATA_SET == "food"]
+then
   ZIP_FILE_NAME=food.tar
   DATA_SET_DIR=food-101
-then
 elif [$DATA_SET == "pets"]
+then
   ZIP_FILE_NAME=pets.tar
   DATA_SET_DIR=pets
-then
 elif [$DATA_SET == "stanford_cars"]
+then
   ZIP_FILE_NAME=stanford_cars.tar
   DATA_SET_DIR=cars_new
-then
 elif [$DATA_SET == "SUN397"]
+then
   ZIP_FILE_NAME=SUN397.tar
   DATA_SET_DIR=SUN397
 fi

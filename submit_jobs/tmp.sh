@@ -8,7 +8,7 @@
 #BSUB -J "tmp"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=stanford_cars
+DATA_SET=SUN397
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz

@@ -63,15 +63,19 @@ echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 echo "Number of CPU threads/core: $(nproc --all)"
 
 # Transfer dataset to scratch
-if [ "$DATA_SET" = "aircraft" ]
-then
-  tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
-  echo "Unzipped dataset"
-elif [ "$DATA_SET" != "cifar10"] && [ "$DATA_SET" != "cifar10"]
-then
+if [ "$DATA_SET" != "cifar"* ]; then
   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
   echo "Unzipped dataset"
 fi
+
+# # Transfer dataset to scratch
+# if [ "$DATA_SET" = "aircraft" ]; then
+#   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+#   echo "Unzipped dataset"
+# elif [ "$DATA_SET" != "cifar10" ] && [ "$DATA_SET" != "cifar100" ]; then
+#   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+#   echo "Unzipped dataset"
+# fi
 
 # Set project paths
 PROJECT_ROOT_DIR=/cluster/project/cvl/specta/code/robust-models-transfer

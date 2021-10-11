@@ -45,7 +45,7 @@ elif [ "$DATA_SET" = "stanford_cars" ]; then
   DATA_SET_DIR=cars_new
 elif [ "$DATA_SET" = "SUN397" ]; then
   ZIP_FILE_NAME=SUN397.tar
-  DATA_SET_DIR=SUN397
+  DATA_SET_DIR=SUN397/splits_01
 fi
 echo "Zip file name: ${ZIP_FILE_NAME}"
 echo "Data set dir: ${DATA_SET_DIR}"

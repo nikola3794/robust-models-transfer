@@ -3,8 +3,8 @@
 exp_name: cifar10-transfer-demo
 out_dir: /srv/beegfs02/scratch/hl_task_prediction/data/nikola/experiment_logs/robust-transfer/
 
-dataset: dtd
-data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/dtd/
+dataset: SUN397
+data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/SUN397/splits_01
 data_aug: Null
 workers: 8
 

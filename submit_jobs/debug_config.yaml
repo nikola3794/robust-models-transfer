@@ -24,7 +24,7 @@ cifar10_cifar10: False
 eval_only: Null
 epochs: 1
 batch_size: 4
-optimizer: sgd
+optimizer: adamw
 lr: 0.01
 step_lr: 30
 step_lr_gamma: Null

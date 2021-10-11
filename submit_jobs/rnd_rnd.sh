@@ -4,11 +4,11 @@
 #BSUB -n 8 # number of cpu cores
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
-#BSUB -R "select[gpu_mtotal0>=20240]" # MB per GPU core
-#BSUB -J "tmp"
+#BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
+#BSUB -J "rnd"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=SUN397
+DATA_SET=aircraft
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -71,46 +71,39 @@ elif [ "$DATA_SET" != "cifar"* ]; then
   echo "Unzipped dataset"
 fi
 
-# # Transfer dataset to scratch
-# if [ "$DATA_SET" = "aircraft" ]; then
-#   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
-#   echo "Unzipped dataset"
-# elif [ "$DATA_SET" != "cifar10" ] && [ "$DATA_SET" != "cifar100" ]; then
-#   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
-#   echo "Unzipped dataset"
-# fi
-
 # Set project paths
 PROJECT_ROOT_DIR=/cluster/project/cvl/specta/code/robust-models-transfer
 export PYTHONPATH=${PYTHONPATH}:${PROJECT_ROOT_DIR}
 cd ${PROJECT_ROOT_DIR}
 pwd
 
-# RND=$(( RANDOM % 999 ))
-# MASTER_PORT=$((29000 + $RND))
-# echo "Master port: ${MASTER_PORT}"
-
 ARCH=vit_deit_small_patch16_224
 MIN_SLOPE=0.0
 MAX_SLOPE=2.5
 RND_ACT=True
+OPTIMIZER=adamw
+LR=0.0001
 
 RND=$(( RANDOM % 999 ))
-EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}-$RND
+EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}-${OPTIMIZER}-${LR}-${RND}
 
 python src/main_new.py \
   --config ${PROJECT_ROOT_DIR}/submit_jobs/default_config.yaml \
-  --arch resnet18 \
+  --exp-name $EXP_NAME \
+  --out-dir /cluster/work/cvl/specta/experiment_logs/robust-transfer \
   --dataset $DATA_SET \
   --data ${TMPDIR}/${DATA_SET_DIR} \
-  --out-dir /cluster/work/cvl/specta/experiment_logs/robust-transfer \
-  --exp-name $EXP_NAME \
+  --workers 8 \
+  --arch $ARCH \
+  --model-path /cluster/work/cvl/specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar \
+  --min-slope $MIN_SLOPE \
+  --max-slope $MAX_SLOPE \
+  --rnd-act $RND_ACT \
+  --freeze-level -1
+  --adv-train 0 \
   --epochs 150 \
-  --lr 0.01 \
+  --optimizer $OPTIMIZER \
+  --lr $LR \
   --step-lr 50 \
   --batch-size 64 \
-  --weight-decay 5e-4 \
-  --adv-train 0 \
-  --arch vit_deit_small_patch16_224 \
-  --model-path /cluster/work/cvl/specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar \
-  --freeze-level -1
+  --weight-decay 0.005 \

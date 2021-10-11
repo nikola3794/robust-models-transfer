@@ -14,6 +14,8 @@ import os
 import time
 import warnings
 
+import csv
+
 if int(os.environ.get("NOTEBOOK_MODE", 0)) == 1:
     from tqdm import tqdm_notebook as tqdm
 else:
@@ -314,6 +316,9 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
     start_time = time.time()
 
     for epoch in range(start_epoch, args.epochs):
+        # # TODO <--------------
+        # if epoch == 1:
+        #     break
         # train for one epoch
         train_prec1, train_loss = _model_loop(args, 'train', train_loader, 
                 model, opt, epoch, args.adv_train, writer)
@@ -380,6 +385,7 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
 
             if last_epoch:
                 with open(os.path.join(args.out_dir, args.exp_name, 'results.txt'), 'w') as fh:
+                    # Log to .txt file
                     exp_info = {
                         "exp_name": args.exp_name,
                         "out_dir": args.out_dir,
@@ -389,15 +395,29 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
                         "arch": args.arch,
                         "model_path": args.model_path
                     }
+                    fh.write('Log info\n')
+                    fh.write('-------------------------------------------------------\n')
+                    for k in log_info:
+                        fh.write(f'{k}: {log_info[k]}\n')
+                    fh.write('\n\n\n')
                     fh.write('Experiment info\n')
                     fh.write('-------------------------------------------------------\n')
                     for k in exp_info:
                         fh.write(f'{k}: {exp_info[k]}\n')
                     fh.write('\n\n\n')
-                    fh.write('Log info\n')
+                    fh.write('Configuration\n')
                     fh.write('-------------------------------------------------------\n')
-                    for k in log_info:
-                        fh.write(f'{k}: {log_info[k]}\n')
+                    for arg in vars(args):
+                        fh.write(f'{arg}:{getattr(args, arg)}\n')
+                    fh.write('\n\n\n')
+
+                # Log to .csv file
+                header = ['dataset', 'arch', 'freeze-level', 'min-slope', 'max-slope', 'rnd-act', 'top1_val', 'top1_train', 'optimizer', 'lr', 'wd', 'epochs', 'batch-size', 'data_aug']
+                data = [ args.dataset, args.arch, args.freeze_level, args.min_slope, args.max_slope, args.rnd_act, f'{prec1:.3f}', f'{train_prec1:.3f}',args.optimizer, args.lr, args.weight_decay, args.epochs, args.batch_size, args.data_aug]
+                with open(os.path.join(args.out_dir, args.exp_name, 'results.csv'), 'w') as fh:
+                    writer = csv.writer(fh)
+                    writer.writerow(header)
+                    writer.writerow(data)
 
         if schedule: schedule.step()
         if has_attr(args, 'epoch_hook'): args.epoch_hook(model, log_info)
@@ -470,6 +490,7 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer):
 
     iterator = tqdm(enumerate(loader), total=len(loader))
     for i, (inp, target) in iterator:
+        # # TODO <------------------
         # if i == 3:
         #     break
        # measure data loading time

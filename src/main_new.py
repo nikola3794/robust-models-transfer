@@ -16,6 +16,16 @@ from utils import fine_tunify, transfer_datasets
 import yaml
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 yaml_default_cfg_pth = "/srv/beegfs02/scratch/hl_task_prediction/data/nikola/code/robust-models-transfer/submit_jobs/debug_config.yaml"
 config_parser = parser = argparse.ArgumentParser(description='Training Config', add_help=False)
 parser.add_argument('--config', default=yaml_default_cfg_pth, type=str, metavar='FILE',
@@ -54,7 +64,7 @@ parser.add_argument('--per-class-accuracy', action='store_true', help='Report th
 
 parser.add_argument('--min-slope', type=float, default=0.0)
 parser.add_argument('--max-slope', type=float, default=1.0)
-parser.add_argument('--rnd-act', type=bool, default=False)
+parser.add_argument('--rnd-act', type=str2bool, default=False)
 parser.add_argument('--optimizer', type=str, default='sgd')
 
 def main(args, store):

@@ -1,10 +1,8 @@
-#arch='resnet18'
-#model_path='/srv/beegfs02/scratch/hl_task_prediction/data/nikola/models/robust-models-transfer/resnet-18-l2-eps3.ckpt'
-exp_name: cifar10-transfer-demo
-out_dir: /cluster/work/cvl/specta/experiment_logs/robust-transfer
+exp_name: specify_this
+out_dir: specify_this
 
-dataset: caltech101
-data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/caltech101/
+dataset: specify_this
+data: specify_this
 data_aug: Null
 workers: 8
 

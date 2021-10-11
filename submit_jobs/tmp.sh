@@ -14,51 +14,51 @@ MIN_SLOPE=0.0
 MAX_SLOPE=2.5
 RND_ACT=True
 
-if [$DATA_SET == "aircraft"]
+if [$DATA_SET = "aircraft"]
 then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
   DATA_SET_DIR=fgvc-aircraft-2013b
-elif [$DATA_SET == "birds"]
+elif [$DATA_SET = "birds"]
 then
   ZIP_FILE_NAME=birdsnap.tar
   DATA_SET_DIR=birdsnap
-elif [$DATA_SET == "caltech101"]
+elif [$DATA_SET = "caltech101"]
 then
   ZIP_FILE_NAME=caltech101.tar
   DATA_SET_DIR=caltech101
-elif [$DATA_SET == "caltech256"]
+elif [$DATA_SET = "caltech256"]
 then
   ZIP_FILE_NAME=caltech256.tar
   DATA_SET_DIR=caltech256
-elif [$DATA_SET == "cifar10"]
+elif [$DATA_SET = "cifar10"]
 then
   ZIP_FILE_NAME=todo # TODO
   DATA_SET_DIR=todo # TODO
-elif [$DATA_SET == "cifar100"]
+elif [$DATA_SET = "cifar100"]
 then
   ZIP_FILE_NAME=todo #TODO
   DATA_SET_DIR=todo # TODO
-elif [$DATA_SET == "dtd"]
+elif [$DATA_SET = "dtd"]
 then
   ZIP_FILE_NAME=dtd.tar
   DATA_SET_DIR=dtd
-elif [$DATA_SET == "flowers"]
+elif [$DATA_SET = "flowers"]
 then
   ZIP_FILE_NAME=flowers.tar
   DATA_SET_DIR=flowers_new
-elif [$DATA_SET == "food"]
+elif [$DATA_SET = "food"]
 then
   ZIP_FILE_NAME=food.tar
   DATA_SET_DIR=food-101
-elif [$DATA_SET == "pets"]
+elif [$DATA_SET = "pets"]
 then
   ZIP_FILE_NAME=pets.tar
   DATA_SET_DIR=pets
-elif [$DATA_SET == "stanford_cars"]
+elif [$DATA_SET = "stanford_cars"]
 then
   ZIP_FILE_NAME=stanford_cars.tar
   DATA_SET_DIR=cars_new
-elif [$DATA_SET == "SUN397"]
+elif [$DATA_SET = "SUN397"]
 then
   ZIP_FILE_NAME=SUN397.tar
   DATA_SET_DIR=SUN397
@@ -80,7 +80,7 @@ echo "Number of CPU threads/core: $(nproc --all)"
 if [$DATA_SET == "aircraft"]
 then
   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
-elif [$DATA_SET != "cifar10" && $DATA_SET != "cifar10"]
+elif [$DATA_SET != "cifar10"] && [$DATA_SET != "cifar10"]
 then
   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
 fi

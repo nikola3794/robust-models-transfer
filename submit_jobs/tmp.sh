@@ -66,9 +66,11 @@ echo "Number of CPU threads/core: $(nproc --all)"
 if [ "$DATA_SET" = "aircraft" ]
 then
   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+  echo "Unzipped dataset"
 elif [ "$DATA_SET" != "cifar10"] && [ "$DATA_SET" != "cifar10"]
 then
-  tar -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+  tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+  echo "Unzipped dataset"
 fi
 
 # Set project paths

@@ -9,11 +9,59 @@
 #BSUB -R lca # workaround for the current wandb cluster bug
 
 DATA_SET=aircraft
-DATA_SET_DIR=fgvc-aircraft-2013b
 ARCH=vit_deit_small_patch16_224
 MIN_SLOPE=0.0
 MAX_SLOPE=2.5
 RND_ACT=True
+
+if [$DATA_SET == "aircraft"]
+then
+  ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
+  DATA_SET_DIR=fgvc-aircraft-2013b
+elif [$DATA_SET == "birds"]
+  ZIP_FILE_NAME=birdsnap.tar
+  DATA_SET_DIR=birdsnap
+then
+elif [$DATA_SET == "caltech101"]
+  ZIP_FILE_NAME=caltech101.tar
+  DATA_SET_DIR=caltech101
+then
+elif [$DATA_SET == "caltech256"]
+  ZIP_FILE_NAME=caltech256.tar
+  DATA_SET_DIR=caltech256
+then
+elif [$DATA_SET == "cifar10"]
+  ZIP_FILE_NAME=todo # TODO
+  DATA_SET_DIR=todo # TODO
+then
+elif [$DATA_SET == "cifar100"]
+  ZIP_FILE_NAME=todo #TODO
+  DATA_SET_DIR=todo # TODO
+then
+elif [$DATA_SET == "dtd"]
+  ZIP_FILE_NAME=dtd.tar
+  DATA_SET_DIR=dtd
+then
+elif [$DATA_SET == "flowers"]
+  ZIP_FILE_NAME=flowers.tar
+  DATA_SET_DIR=flowers_new
+then
+elif [$DATA_SET == "food"]
+  ZIP_FILE_NAME=food.tar
+  DATA_SET_DIR=food-101
+then
+elif [$DATA_SET == "pets"]
+  ZIP_FILE_NAME=pets.tar
+  DATA_SET_DIR=pets
+then
+elif [$DATA_SET == "stanford_cars"]
+  ZIP_FILE_NAME=stanford_cars.tar
+  DATA_SET_DIR=cars_new
+then
+elif [$DATA_SET == "SUN397"]
+  ZIP_FILE_NAME=SUN397.tar
+  DATA_SET_DIR=SUN397
+fi
 
 # Activate python environment
 source /cluster/project/cvl/specta/python_envs/robust-transfer/bin/activate
@@ -27,10 +75,14 @@ module load pigz
 echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 echo "Number of CPU threads/core: $(nproc --all)"
 
-# Transfer ImageNet to scratch
-tar -I pigz -xf /cluster/work/cvl/specta/data/fgvc-aircraft-2013b.tar.gz -C ${TMPDIR}/
-#echo "Number of train classes is $(ls ${TMPDIR}/${}/train | wc -l)"
-#echo "Number of val classes is $(ls ${TMPDIR}/ILSVRC2012/val | wc -l)"
+# Transfer dataset to scratch
+if [$DATA_SET == "aircraft"]
+then
+  tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+elif [$DATA_SET != "cifar10" && $DATA_SET != "cifar10"]
+then
+  tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+fi
 
 # Set project paths
 PROJECT_ROOT_DIR=/cluster/project/cvl/specta/code/robust-models-transfer
@@ -42,12 +94,13 @@ pwd
 # MASTER_PORT=$((29000 + $RND))
 # echo "Master port: ${MASTER_PORT}"
 
-EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}
+RND = $(( RANDOM % 999 ))
+EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}-$RND
 
 python src/main_new.py \
   --arch resnet18 \
   --dataset $DATA_SET \
-  --data ${TMPDIR}/fgvc-aircraft-2013b \
+  --data ${TMPDIR}/${DATA_SET_DIR} \
   --out-dir /cluster/work/cvl/specta/experiment_logs/robust-transfer \
   --exp-name $EXP_NAME \
   --epochs 150 \

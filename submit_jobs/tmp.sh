@@ -8,11 +8,7 @@
 #BSUB -J "tmp"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=aircraft
-ARCH=vit_deit_small_patch16_224
-MIN_SLOPE=0.0
-MAX_SLOPE=2.5
-RND_ACT=True
+DATA_SET=birds
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -84,6 +80,11 @@ pwd
 # RND=$(( RANDOM % 999 ))
 # MASTER_PORT=$((29000 + $RND))
 # echo "Master port: ${MASTER_PORT}"
+
+ARCH=vit_deit_small_patch16_224
+MIN_SLOPE=0.0
+MAX_SLOPE=2.5
+RND_ACT=True
 
 RND=$(( RANDOM % 999 ))
 EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}-$RND

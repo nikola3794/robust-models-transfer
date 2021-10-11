@@ -68,7 +68,7 @@ then
   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
 elif [ "$DATA_SET" != "cifar10"] && [ "$DATA_SET" != "cifar10"]
 then
-  tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
+  tar -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
 fi
 
 # Set project paths

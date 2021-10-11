@@ -1,7 +1,7 @@
 #arch='resnet18'
 #model_path='/srv/beegfs02/scratch/hl_task_prediction/data/nikola/models/robust-models-transfer/resnet-18-l2-eps3.ckpt'
 exp_name: cifar10-transfer-demo
-out_dir: /cluster/work/cvl/specta/experiment_logs/robust-transfer
+out_dir: /srv/beegfs02/scratch/hl_task_prediction/data/nikola/experiment_logs/robust-transfer/
 
 dataset: aircraft
 data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/fgvc-aircraft-2013b/

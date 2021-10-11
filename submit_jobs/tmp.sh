@@ -89,7 +89,7 @@ RND=$(( RANDOM % 999 ))
 EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}-$RND
 
 python src/main_new.py \
-  --config ${PROJECT_ROOT_DIR}/submit_jobs/default_config.yaml
+  --config ${PROJECT_ROOT_DIR}/submit_jobs/default_config.yaml \
   --arch resnet18 \
   --dataset $DATA_SET \
   --data ${TMPDIR}/${DATA_SET_DIR} \

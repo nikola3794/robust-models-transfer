@@ -16,7 +16,7 @@ from utils import fine_tunify, transfer_datasets
 import yaml
 
 
-yaml_default_cfg_pth = "/srv/beegfs02/scratch/hl_task_prediction/data/nikola/code/robust-models-transfer/submit_jobs/default_config.yaml"
+yaml_default_cfg_pth = "/srv/beegfs02/scratch/hl_task_prediction/data/nikola/code/robust-models-transfer/submit_jobs/debug_config.yaml"
 config_parser = parser = argparse.ArgumentParser(description='Training Config', add_help=False)
 parser.add_argument('--config', default=yaml_default_cfg_pth, type=str, metavar='FILE',
                     help='YAML config file specifying default arguments')

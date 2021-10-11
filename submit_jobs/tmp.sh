@@ -51,6 +51,8 @@ elif [ "$DATA_SET" = "SUN397" ]; then
   ZIP_FILE_NAME=SUN397.tar
   DATA_SET_DIR=SUN397
 fi
+echo "Zip file name: ${ZIP_FILE_NAME}"
+echo "Data set dir: ${DATA_SET_DIR}"
 
 # Activate python environment
 source /cluster/project/cvl/specta/python_envs/robust-transfer/bin/activate
@@ -83,7 +85,7 @@ pwd
 # MASTER_PORT=$((29000 + $RND))
 # echo "Master port: ${MASTER_PORT}"
 
-RND = $(( RANDOM % 999 ))
+RND=$(( RANDOM % 999 ))
 EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-rnd-${RND_ACT}-$RND
 
 python src/main_new.py \
@@ -99,5 +101,5 @@ python src/main_new.py \
   --weight-decay 5e-4 \
   --adv-train 0 \
   --arch vit_deit_small_patch16_224 \
-  --model-path /cluster/work/cvl/specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar
+  --model-path /cluster/work/cvl/specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar \
   --freeze-level -1

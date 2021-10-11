@@ -77,7 +77,7 @@ echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 echo "Number of CPU threads/core: $(nproc --all)"
 
 # Transfer dataset to scratch
-if [$DATA_SET == "aircraft"]
+if [$DATA_SET = "aircraft"]
 then
   tar -I pigz -xf /cluster/work/cvl/specta/data/${ZIP_FILE_NAME} -C ${TMPDIR}/
 elif [$DATA_SET != "cifar10"] && [$DATA_SET != "cifar10"]

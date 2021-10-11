@@ -99,11 +99,11 @@ python src/main_new.py \
   --min-slope $MIN_SLOPE \
   --max-slope $MAX_SLOPE \
   --rnd-act $RND_ACT \
-  --freeze-level -1
+  --freeze-level -1 \
   --adv-train 0 \
   --epochs 150 \
   --optimizer $OPTIMIZER \
   --lr $LR \
   --step-lr 50 \
   --batch-size 64 \
-  --weight-decay 0.005 \
+  --weight-decay 0.005 

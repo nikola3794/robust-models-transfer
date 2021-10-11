@@ -5,10 +5,10 @@
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
 #BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
-#BSUB -J "parm_stanford_cars"
+#BSUB -J "parm_SUN397"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=stanford_cars
+DATA_SET=SUN397
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz

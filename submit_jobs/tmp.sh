@@ -8,7 +8,7 @@
 #BSUB -J "tmp"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=food
+DATA_SET=pets
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz

@@ -139,7 +139,7 @@ class Caltech256(VisionDataset):
     """
 
     def __init__(self, root, transform=None, target_transform=None, download=False):
-        super(Caltech256, self).__init__(os.path.join(root, 'caltech256'),
+        super(Caltech256, self).__init__(os.path.join(root),
                                          transform=transform,
                                          target_transform=target_transform)
         os.makedirs(self.root, exist_ok=True)

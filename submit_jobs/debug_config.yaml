@@ -3,8 +3,8 @@
 exp_name: cifar10-transfer-demo
 out_dir: /srv/beegfs02/scratch/hl_task_prediction/data/nikola/experiment_logs/robust-transfer/
 
-dataset: caltech101
-data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/caltech101/
+dataset: caltech256
+data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/caltech256/
 data_aug: Null
 workers: 8
 

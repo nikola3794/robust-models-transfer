@@ -412,8 +412,8 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
                     fh.write('\n\n\n')
 
                 # Log to .csv file
-                header = ['dataset', 'arch', 'freeze-level', 'min-slope', 'max-slope', 'rnd-act', 'top1_val', 'top1_train', 'optimizer', 'lr', 'wd', 'epochs', 'batch-size', 'data_aug']
-                data = [ args.dataset, args.arch, args.freeze_level, args.min_slope, args.max_slope, args.rnd_act, f'{prec1:.3f}', f'{train_prec1:.3f}',args.optimizer, args.lr, args.weight_decay, args.epochs, args.batch_size, args.data_aug]
+                header = ['dataset', 'arch', 'freeze-level', 'only-learn-slope', 'min-slope', 'max-slope', 'rnd-act', 'top1_val', 'top1_train', 'optimizer', 'lr', 'wd', 'epochs', 'batch-size', 'data_aug']
+                data = [ args.dataset, args.arch, args.freeze_level, args.only_learn_slope_trf, args.min_slope, args.max_slope, args.rnd_act, f'{prec1:.3f}', f'{train_prec1:.3f}',args.optimizer, args.lr, args.weight_decay, args.epochs, args.batch_size, args.data_aug]
                 with open(os.path.join(args.out_dir, args.exp_name, 'results.csv'), 'w') as fh:
                     writer = csv.writer(fh)
                     writer.writerow(header)

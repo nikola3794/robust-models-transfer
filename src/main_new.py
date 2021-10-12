@@ -67,6 +67,8 @@ parser.add_argument('--max-slope', type=float, default=1.0)
 parser.add_argument('--rnd-act', type=str2bool, default=False)
 parser.add_argument('--optimizer', type=str, default='sgd')
 
+parser.add_argument('--only-learn-slope-trf', type=str2bool, default=False)
+
 def main(args, store):
     '''Given arguments and a cox store, trains as a model. Check out the 
     argparse object in this file for argument options.
@@ -236,6 +238,7 @@ def freeze_model(model, freeze_level):
     # Freeze layers according to args.freeze-level
     update_params = None
     if freeze_level != -1:
+        assert not args.only_learn_slope_trf # TODO Either use freeze_level or args.only_learn_slope_trf
         # assumes a resnet architecture
         assert len([name for name, _ in list(model.named_parameters())
                     if f"layer{freeze_level}" in name]), "unknown freeze level (only {1,2,3,4} for ResNets)"
@@ -253,6 +256,21 @@ def freeze_model(model, freeze_level):
             if freeze and f'layer{freeze_level}' in name:
                 # if the freeze level is detected stop freezing onwards
                 freeze = False
+    elif args.only_learn_slope_trf:
+        assert freeze_level == -1 # TODO Either use freeze_level or args.only_learn_slope_trf
+        
+        update_params = []
+        #freeze = True
+        for name, param in model.named_parameters():
+            print(name, param.size())
+
+            # if not freeze and f'layer{freeze_level}' not in name:
+            if ('blocks' not in name) or ('slope_w' in name):
+                print(f"[Appending the params of {name} to the update list]")
+                update_params.append(param)
+            else:
+                param.requires_grad = False
+
     return update_params
 
 

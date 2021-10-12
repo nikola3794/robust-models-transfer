@@ -8,7 +8,8 @@ data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/SUN397/splits_01
 data_aug: Null
 workers: 8
 
-arch: vit_deit_small_patch16_224
+#arch: vit_deit_small_patch16_224
+arch: vit_slope_param_deit_small_patch16_224
 model_path: /home/nipopovic/Projects/euler/work_specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar
 pytorch_pretrained: False
 
@@ -17,6 +18,7 @@ max_slope: 2.5
 rnd_act: False
 
 freeze_level: -1
+only_learn_slope_trf: True
 no_replace_last_layer: False
 additional_hidden: 0
 cifar10_cifar10: False

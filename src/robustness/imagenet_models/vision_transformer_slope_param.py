@@ -166,13 +166,9 @@ class Mlp(nn.Module):
     def forward(self, x, min_slope, max_slope, rnd_act):
         x = self.fc1(x)
 
-        if rnd_act:
-            # slope_tmp = torch.empty((1, 1, x.shape[2]), dtype=x.dtype, device=x.device)
-            # slope_tmp.uniform_(min_slope, max_slope)
-            raise NotImplementedError
-        else:
-            slope_tmp = self.slope_w
-        x = slope_tmp * x
+        assert not rnd_act
+
+        x = self.slope_w * max_slope * x
 
         x = self.act(x)
         x = self.drop(x)

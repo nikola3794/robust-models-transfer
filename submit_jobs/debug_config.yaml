@@ -15,7 +15,7 @@ pytorch_pretrained: False
 
 min_slope: 0.0
 max_slope: 2.5
-rnd_act: False
+rnd_act: True
 
 freeze_level: -1
 only_learn_slope_trf: True

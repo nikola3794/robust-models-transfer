@@ -9,4 +9,3 @@ pwd
 bsub < submit_jobs/batch_2/regular.sh
 bsub < submit_jobs/batch_2/rnd_mean.sh
 bsub < submit_jobs/batch_2/rnd_param.sh
-bsub < submit_jobs/batch_2/rnd_rnd.sh

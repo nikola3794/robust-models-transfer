@@ -165,8 +165,11 @@ class Mlp(nn.Module):
         x = self.fc1(x)
 
         if rnd_act:
-            slope_tmp = torch.empty((1, 1, x.shape[2]), dtype=x.dtype, device=x.device)
-            slope_tmp.uniform_(min_slope, max_slope)
+            if self.training:
+                slope_tmp = torch.empty((1, 1, x.shape[2]), dtype=x.dtype, device=x.device)
+                slope_tmp.uniform_(min_slope, max_slope)
+            else:
+                slope_tmp = min_slope + (max_slope - min_slope)/ 2.0
         else:
             slope_tmp = max_slope
         x = slope_tmp * x

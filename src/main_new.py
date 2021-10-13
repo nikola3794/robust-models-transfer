@@ -163,7 +163,7 @@ def get_dataset_and_loaders(args):
             only_val=args.eval_only, batch_size=args.batch_size, workers=8)
     else:
         ds, (train_loader, validation_loader) = transfer_datasets.make_loaders(
-            args.dataset, args.batch_size, 8, args.subset)
+            args.dataset, args.batch_size, args.workers, args.subset)
         if type(ds) == int:
             new_ds = datasets.CIFAR("/tmp")
             new_ds.num_classes = ds

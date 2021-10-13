@@ -6,7 +6,7 @@ out_dir: /srv/beegfs02/scratch/hl_task_prediction/data/nikola/experiment_logs/ro
 dataset: SUN397
 data: /srv/beegfs02/scratch/hl_task_prediction/data/data_sets/SUN397/splits_01
 data_aug: Null
-workers: 8
+workers: 2
 
 #arch: vit_deit_small_patch16_224
 arch: vit_deit_small_patch16_224
@@ -25,7 +25,7 @@ cifar10_cifar10: False
 
 eval_only: Null
 epochs: 10
-batch_size: 4
+batch_size: 1
 optimizer: adamw
 lr: 0.01
 step_lr: 30

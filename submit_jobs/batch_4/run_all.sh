@@ -6,7 +6,7 @@ export PYTHONPATH=${PYTHONPATH}:${PROJECT_ROOT_DIR}
 cd ${PROJECT_ROOT_DIR}
 pwd
 
-bsub < submit_jobs/regular.sh
-bsub < submit_jobs/rnd_mean.sh
-bsub < submit_jobs/rnd_param.sh
-bsub < submit_jobs/rnd_rnd.sh
+bsub < submit_jobs/batch_4/regular.sh
+bsub < submit_jobs/batch_4/rnd_mean.sh
+bsub < submit_jobs/batch_4/rnd_param.sh
+bsub < submit_jobs/batch_4/rnd_rnd.sh

@@ -513,7 +513,7 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, last_ep
                     output += output_tmp
             output /= (cnt+1)
         else:
-            output_tmp, final_inp = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
+            output, final = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
 
 
         loss = train_criterion(output, target)

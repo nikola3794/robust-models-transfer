@@ -1,5 +1,5 @@
 #!/bin/bash
-#BSUB -o /cluster/work/cvl/specta/experiment_logs/robust-transfer/euler_logs/  # path to output file
+#BSUB -o /cluster/work/cvl/specta/experiment_logs/robust-transfer/_euler_logs/  # path to output file
 #BSUB -W 47:59 # HH:MM runtime
 #BSUB -n 8 # number of cpu cores
 #BSUB -R "rusage[mem=4096]" # MB per CPU core

@@ -122,7 +122,7 @@ for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
       --freeze-level $FREEZE_LEVEL \
       --additional-hidden $ADDITIONAL_HIDDEN \
       --lr $LR \
-      --weight_decay $WD \
+      --weight-decay $WD \
       --epochs $EPOCHS 
   done
 done

@@ -16,9 +16,9 @@ act_randomness_type: spedcify_this
 fmap_i: spedcify_this
 fmap_where: spedcify_this
 
-freeze_level: : spedcify_this
+freeze_level: spedcify_this
 no_replace_last_layer: False
-additional_hidden: : spedcify_this
+additional_hidden: spedcify_this
 cifar10_cifar10: False
 
 eval_only: Null

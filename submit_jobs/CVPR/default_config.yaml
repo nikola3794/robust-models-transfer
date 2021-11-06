@@ -8,7 +8,7 @@ workers: 8
 
 arch: spedcify_this
 model_path: specify_this
-pytorch_pretrained: True
+pytorch_pretrained: False
 
 act_min_slope: -100
 act_max_slope: -100

@@ -1,0 +1,57 @@
+exp_name: specify_this
+out_dir: specify_this
+
+dataset: specify_this
+data: specify_this
+data_aug: Null
+workers: 8
+
+arch: spedcify_this
+model_path: specify_this
+pytorch_pretrained: True
+
+act_min_slope: spedcify_this
+act_max_slope: spedcify_this
+act_randomness_type: spedcify_this
+fmap_i: spedcify_this
+fmap_where: spedcify_this
+
+freeze_level: : spedcify_this
+no_replace_last_layer: False
+additional_hidden: : spedcify_this
+cifar10_cifar10: False
+
+eval_only: Null
+epochs: 150
+batch_size: 64
+optimizer: adamw
+lr: 0.00001
+step_lr: 50
+step_lr_gamma: Null
+weight_decay: 0.005
+momentum: Null
+custom_eps_multiplier: Null
+custom_lr_multiplier: Null
+lr_interpolation: Null
+mixed_precision: Null
+
+# <-------------- ??????????????
+constraint: Null 
+subset: Null
+use_best: Null
+resume: False
+resume_optimizer: Null
+# <-------------- ??????????????
+
+no_tqdm: 1
+per_class_accuracy: False
+save_ckpt_iters: Null
+log_iters: Null
+
+adv_train: 0
+eps: Null
+adv_eval: Null
+attack_lr: Null
+attack_steps: Null
+random_start: Null
+random_restarts: Null

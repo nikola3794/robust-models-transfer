@@ -62,15 +62,12 @@ parser.add_argument('--additional-hidden', type=int, default=0,
 parser.add_argument('--per-class-accuracy', action='store_true', help='Report the per-class accuracy. '
                     'Can be used only with pets, caltech101, caltech256, aircraft, and flowers.')
 
-parser.add_argument('--act-min-slope', type=float, default=0.0)
-parser.add_argument('--act-max-slope', type=float, default=2.0)
-parser.add_argument('--act-randomness-type', type=str, default='uniform')
+parser.add_argument('--min-slope', type=float, default=0.0)
+parser.add_argument('--max-slope', type=float, default=1.0)
+parser.add_argument('--rnd-act', type=str2bool, default=False)
+parser.add_argument('--optimizer', type=str, default='sgd')
 
-parser.add_argument('--fmap-i', type=int, default=12)
-parser.add_argument('--fmap-where', type=str, default='before_act')
-
-parser.add_argument('--optimizer', type=str, default='sgd') 
-
+parser.add_argument('--only-learn-slope-trf', type=str2bool, default=False)
 
 def main(args, store):
     '''Given arguments and a cox store, trains as a model. Check out the 
@@ -95,10 +92,6 @@ def main(args, store):
         return train.eval_model(args, model, validation_loader, store=store)
 
     update_params = freeze_model(model, freeze_level=args.freeze_level)
-
-    if "fmap_i" not in args.arch:
-        args.fmap_i = ''
-        args.fmap_where = ''
 
     print(f"**********************************************************")
     print(f"Exp name: {args.exp_name}")
@@ -237,45 +230,46 @@ def get_model(args, ds):
             print('[NOT replacing the last layer]')
     return model, checkpoint
 
-# TODO <-----------------------------------------------------
-# TODO              THIS IS HARDCODED FOR VIT
-# TODO <-----------------------------------------------------
+
 def freeze_model(model, freeze_level):
     '''
     Freezes up to args.freeze_level layers of the model (assumes a resnet model)
     '''
     # Freeze layers according to args.freeze-level
-
-    while hasattr(model, 'model'):
-        model = model.model
-
-    update_params = []
-    if freeze_level == -1:
-        update_params = None
-    elif freeze_level == -2:
-        for name, param in model.named_parameters():
-            print(name, param.size())
-            if 'head' in name:
-                print(f"[Appending the params of {name} to the update list]")
-                update_params.append(param)
-            else:
-                param.requires_grad = False
-    else:
-        assert freeze_level > 0
-        assert freeze_level <= len(list(model.blocks))
+    update_params = None
+    if freeze_level != -1:
+        assert not args.only_learn_slope_trf # TODO Either use freeze_level or args.only_learn_slope_trf
+        # assumes a resnet architecture
+        assert len([name for name, _ in list(model.named_parameters())
+                    if f"layer{freeze_level}" in name]), "unknown freeze level (only {1,2,3,4} for ResNets)"
+        update_params = []
         freeze = True
         for name, param in model.named_parameters():
             print(name, param.size())
 
-            if not freeze and f'blocks.{freeze_level-1}' not in name:
+            if not freeze and f'layer{freeze_level}' not in name:
                 print(f"[Appending the params of {name} to the update list]")
                 update_params.append(param)
             else:
                 param.requires_grad = False
 
-            if freeze and f'blocks.{freeze_level-1}' in name:
+            if freeze and f'layer{freeze_level}' in name:
                 # if the freeze level is detected stop freezing onwards
                 freeze = False
+    elif args.only_learn_slope_trf:
+        assert freeze_level == -1 # TODO Either use freeze_level or args.only_learn_slope_trf
+        
+        update_params = []
+        #freeze = True
+        for name, param in model.named_parameters():
+            print(name, param.size())
+
+            # if not freeze and f'layer{freeze_level}' not in name:
+            if ('blocks' not in name) or ('slope_w' in name):
+                print(f"[Appending the params of {name} to the update list]")
+                update_params.append(param)
+            else:
+                param.requires_grad = False
 
     return update_params
 

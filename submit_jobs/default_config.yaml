@@ -14,7 +14,7 @@ min_slope: 0.0
 max_slope: 1.0
 rnd_act: False
 
-freeze_level: -1
+freeze_level: 4
 no_replace_last_layer: False
 additional_hidden: 0
 cifar10_cifar10: False

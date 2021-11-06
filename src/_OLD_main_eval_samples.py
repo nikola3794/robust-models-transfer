@@ -55,17 +55,19 @@ parser.add_argument('--no-tqdm', type=int, default=1,
                     choices=[0, 1], help='Do not use tqdm.')
 parser.add_argument('--no-replace-last-layer', action='store_true',
                     help='Whether to avoid replacing the last layer')
-parser.add_argument('--freeze-level', type=int, default=-1,
+parser.add_argument('--freeze-level', type=int, default=4,
                     help='Up to what layer to freeze in the pretrained model (assumes a resnet architectures)')
 parser.add_argument('--additional-hidden', type=int, default=0,
                     help='How many hidden layers to add on top of pretrained network + classification layer')
 parser.add_argument('--per-class-accuracy', action='store_true', help='Report the per-class accuracy. '
                     'Can be used only with pets, caltech101, caltech256, aircraft, and flowers.')
 
-parser.add_argument('--min-slope', type=float, default=0.0)
-parser.add_argument('--max-slope', type=float, default=1.0)
-parser.add_argument('--rnd-act', type=str2bool, default=False)
+parser.add_argument('--act-min-slope', type=float, default=-1.0)
+parser.add_argument('--act-max-slope', type=float, default=-1.0)
+parser.add_argument('--act-randomness-type', type=str, default='uniform')
+
 parser.add_argument('--optimizer', type=str, default='sgd')
+parser.add_argument('--n-eval-samples', type=int, default=1)
 
 parser.add_argument('--only-learn-slope-trf', type=str2bool, default=False)
 
@@ -89,7 +91,7 @@ def main(args, store):
     model, checkpoint = get_model(args, ds)
 
     if args.eval_only:
-        return train_eval_sample.eval_model(args, model, validation_loader, store=store)
+        return train_eval_sample.eval_model(args, model, validation_loader, store=store, n_eval_samples=args.n_eval_samples)
 
     update_params = freeze_model(model, freeze_level=args.freeze_level)
 
@@ -105,7 +107,7 @@ def main(args, store):
     print(f"Model path: {args.model_path}")
     print(f"**********************************************************")
     train_eval_sample.train_model(args, model, (train_loader, validation_loader), store=store,
-                      checkpoint=checkpoint, update_params=update_params)
+                      checkpoint=checkpoint, update_params=update_params, n_eval_samples=args.n_eval_samples)
 
 
 def get_per_class_accuracy(args, loader):

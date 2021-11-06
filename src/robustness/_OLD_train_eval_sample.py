@@ -6,6 +6,8 @@ from torch.optim import SGD, AdamW, lr_scheduler
 from torchvision.utils import make_grid
 from cox.utils import Parameters
 
+from torch.nn import functional as F
+
 from .tools import helpers
 from .tools.helpers import AverageMeter, ckpt_at_epoch, has_attr
 from .tools import constants as consts
@@ -137,7 +139,7 @@ def make_optimizer_and_schedule(args, model, checkpoint, params):
 
     return optimizer, schedule
 
-def eval_model(args, model, loader, store):
+def eval_model(args, model, loader, store, n_eval_samples=1):
     """
     Evaluate a model for standard (and optionally adversarial) accuracy.
 
@@ -160,14 +162,14 @@ def eval_model(args, model, loader, store):
     model = ch.nn.DataParallel(model)
 
     prec1, nat_loss = _model_loop(args, 'val', loader, 
-                                        model, None, 0, False, writer)
+                                        model, None, 0, False, writer, n_samples=n_eval_samples, last_epoch=True)
 
     adv_prec1, adv_loss = float('nan'), float('nan')
     if args.adv_eval: 
         args.eps = eval(str(args.eps)) if has_attr(args, 'eps') else None
         args.attack_lr = eval(str(args.attack_lr)) if has_attr(args, 'attack_lr') else None
         adv_prec1, adv_loss = _model_loop(args, 'val', loader, 
-                                        model, None, 0, True, writer)
+                                        model, None, 0, True, writer, n_samples=n_eval_samples, last_epoch=True)
     log_info = {
         'epoch':0,
         'nat_prec1':prec1,
@@ -184,7 +186,7 @@ def eval_model(args, model, loader, store):
     return log_info
 
 def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
-            store=None, update_params=None, disable_no_grad=False):
+            store=None, update_params=None, disable_no_grad=False, n_eval_samples=1):
     """
     Main function for training a model. 
 
@@ -316,6 +318,9 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
     start_time = time.time()
 
     for epoch in range(start_epoch, args.epochs):
+        # # TODO <--------------
+        # if epoch == 1:
+        #     break
         # train for one epoch
         train_prec1, train_loss = _model_loop(args, 'train', train_loader, 
                 model, opt, epoch, args.adv_train, writer)
@@ -345,12 +350,12 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
             ctx = ch.enable_grad() if disable_no_grad else ch.no_grad() 
             with ctx:
                 prec1, nat_loss = _model_loop(args, 'val', val_loader, model, 
-                        None, epoch, False, writer, last_epoch=last_epoch)
+                        None, epoch, False, writer, n_samples=n_eval_samples, last_epoch=last_epoch)
 
             # loader, model, epoch, input_adv_exs
             should_adv_eval = args.adv_eval or args.adv_train
             adv_val = should_adv_eval and _model_loop(args, 'val', val_loader,
-                    model, None, epoch, True, writer)
+                    model, None, epoch, True, writer, n_samples=n_eval_samples, last_epoch=last_epoch)
             adv_prec1, adv_loss = adv_val or (-1.0, -1.0)
 
             # remember best prec@1 and save checkpoint
@@ -380,12 +385,48 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
             save_checkpoint(consts.CKPT_NAME_LATEST)
             if is_best: save_checkpoint(consts.CKPT_NAME_BEST)
 
+            if last_epoch:
+                with open(os.path.join(args.out_dir, args.exp_name, 'results.txt'), 'w') as fh:
+                    # Log to .txt file
+                    exp_info = {
+                        "exp_name": args.exp_name,
+                        "out_dir": args.out_dir,
+                        "dataset": args.dataset,
+                        "data": args.data,
+                        "data_aug": args.data_aug,
+                        "arch": args.arch,
+                        "model_path": args.model_path
+                    }
+                    fh.write('Log info\n')
+                    fh.write('-------------------------------------------------------\n')
+                    for k in log_info:
+                        fh.write(f'{k}: {log_info[k]}\n')
+                    fh.write('\n\n\n')
+                    fh.write('Experiment info\n')
+                    fh.write('-------------------------------------------------------\n')
+                    for k in exp_info:
+                        fh.write(f'{k}: {exp_info[k]}\n')
+                    fh.write('\n\n\n')
+                    fh.write('Configuration\n')
+                    fh.write('-------------------------------------------------------\n')
+                    for arg in vars(args):
+                        fh.write(f'{arg}:{getattr(args, arg)}\n')
+                    fh.write('\n\n\n')
+
+                # Log to .csv file
+                header = ['dataset', 'arch', 'freeze-level', 'only-learn-slope', 'min-slope', 'max-slope', 'rnd-act', 'top1_val', 'top1_train', 'optimizer', 'lr', 'wd', 'epochs', 'batch-size', 'data_aug']
+                data = [ args.dataset, args.arch, args.freeze_level, args.only_learn_slope_trf, args.min_slope, args.max_slope, args.rnd_act, f'{prec1:.3f}', f'{train_prec1:.3f}',args.optimizer, args.lr, args.weight_decay, args.epochs, args.batch_size, args.data_aug]
+                with open(os.path.join(args.out_dir, args.exp_name, 'results.csv'), 'w') as fh:
+                    writer = csv.writer(fh)
+                    writer.writerow(header)
+                    writer.writerow(data)
+
         if schedule: schedule.step()
         if has_attr(args, 'epoch_hook'): args.epoch_hook(model, log_info)
 
     return model
 
-def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, last_epoch=False):
+def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, n_samples=1, last_epoch=False):
     """
     *Internal function* (refer to the train_model and eval_model functions for
     how to train and evaluate models).
@@ -407,12 +448,17 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, last_ep
     Returns:
         The average top1 accuracy and the average loss across the epoch.
     """
-    thorough_evaluation = (last_epoch and (loop_type == "val"))
-
+    run_N_inference_samples = (last_epoch and (loop_type == "val") and (n_samples>1))
+    if run_N_inference_samples:
+        print(f"Running {n_samples} inference samples to compute output")
     if not loop_type in ['train', 'val']:
         err_msg = "loop_type ({0}) must be 'train' or 'val'".format(loop_type)
         raise ValueError(err_msg)
     is_train = (loop_type == 'train')
+
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
 
     prec = 'NatPrec' if not adv else 'AdvPrec'
     loop_msg = 'Train' if loop_type == 'train' else 'Val'
@@ -446,175 +492,107 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, last_ep
             'random_restarts': random_restarts,
             'use_best': bool(args.use_best)
         }
-    
-    if (args.act_min_slope != -1.0) and (args.act_max_slope != -1.0):
-        if thorough_evaluation:
-            mean_slope = (args.act_max_slope + args.act_min_slope) / 2.0
-            slopes_all = [(mean_slope, mean_slope)] + 3*[(args.act_min_slope, args.act_max_slope)]
-            n_samples_all = [1, 1, 10, 50]
-        else:
-            slopes_all = [(args.act_min_slope, args.act_max_slope)]
-            n_samples_all = [1]
-    else:
-        slopes_all = [(-1.0, -1.0)]
-        n_samples_all = [1]
 
-    for eval_i, (slopes_i, n_samples_i) in enumerate(zip(slopes_all, n_samples_all)):
-            
-        losses = AverageMeter()
-        top1 = AverageMeter()
-        top5 = AverageMeter()
-
-        iterator = tqdm(enumerate(loader), total=len(loader))
-        for i, (inp, target) in iterator:
-            # # TODO <------------------
-            # if i == 3:
-            #     break
-            # measure data loading time
-            target = target.cuda(non_blocking=True)
-            # # TODO Nikola: Modified this
-            # output, final_inp = model(inp, target=target, make_adv=adv,
-            #                           **attack_kwargs)
-            if 'fmap_i' in args.arch:
-                output, final_inp = model(
-                    inp, 
-                    slope_min=args.act_min_slope, 
-                    slope_max=args.act_max_slope, 
-                    randomness_type=args.act_randomness_type, 
-                    layer_i=args.fmap_i, 
-                    layer_where=args.fmap_where
-                )        
-            else:
-                output, final_inp = model(
-                    inp, 
-                    slope_min=args.act_min_slope, 
-                    slope_max=args.act_max_slope, 
-                    randomness_type=args.act_randomness_type,
-                )
-
-            loss = train_criterion(output, target)
-
-            if len(loss.shape) > 0: loss = loss.mean()
-
-            model_logits = output[0] if (type(output) is tuple) else output
-
-            # measure accuracy and record loss
-            top1_acc = float('nan')
-            top5_acc = float('nan')
-            try:
-                maxk = min(5, model_logits.shape[-1])
-                if has_attr(args, "custom_accuracy"):
-                    prec1, prec5 = args.custom_accuracy(model_logits, target)
-                else:
-                    prec1, prec5 = helpers.accuracy(model_logits, target, topk=(1, maxk))
-                    prec1, prec5 = prec1[0], prec5[0]
-
-                losses.update(loss.item(), inp.size(0))
-                top1.update(prec1, inp.size(0))
-                top5.update(prec5, inp.size(0))
-
-                top1_acc = top1.avg
-                top5_acc = top5.avg
-            except:
-                warnings.warn('Failed to calculate the accuracy.')
-
-            reg_term = 0.0
-            if has_attr(args, "regularizer"):
-                reg_term =  args.regularizer(model, inp, target)
-            loss = loss + reg_term
-
-            # compute gradient and do SGD step
-            if is_train:
-                opt.zero_grad()
-                if args.mixed_precision:
-                    with amp.scale_loss(loss, opt) as sl:
-                        sl.backward()
-                else:
-                    loss.backward()
-                opt.step()
-            elif adv and i == 0 and writer:
-                # add some examples to the tensorboard
-                nat_grid = make_grid(inp[:15, ...])
-                adv_grid = make_grid(final_inp[:15, ...])
-                writer.add_image('Nat input', nat_grid, epoch)
-                writer.add_image('Adv input', adv_grid, epoch)
-
-            # ITERATOR
-            desc = ('{2} Epoch:{0} | Loss {loss.avg:.4f} | '
-                    '{1}1 {top1_acc:.3f} | {1}5 {top5_acc:.3f} | '
-                    'Reg term: {reg} ||'.format( epoch, prec, loop_msg, 
-                    loss=losses, top1_acc=top1_acc, top5_acc=top5_acc, reg=reg_term))
-
-            # USER-DEFINED HOOK
-            if has_attr(args, 'iteration_hook'):
-                args.iteration_hook(model, i, loop_type, inp, target)
-
-            iterator.set_description(desc)
-            iterator.refresh()
-
-        if writer is not None:
-            prec_type = 'adv' if adv else 'nat'
-            descs = ['loss', 'top1', 'top5']
-            vals = [losses, top1, top5]
-            for d, v in zip(descs, vals):
-                writer.add_scalar('_'.join([prec_type, loop_type, d]), v.avg,
-                                epoch)
+    iterator = tqdm(enumerate(loader), total=len(loader))
+    for i, (inp, target) in iterator:
+        # # TODO <------------------
+        # if i == 3:
+        #     break
+       # measure data loading time
+        target = target.cuda(non_blocking=True)
+        # # TODO Nikola: Modified this
+        # output, final_inp = model(inp, target=target, make_adv=adv,
+        #                           **attack_kwargs)
         
-        if thorough_evaluation:
-            exp_dir = os.path.join(args.out_dir, args.exp_name)
-            header = [
-                'dataset',
-                'model',
-                'min-slope',
-                'max-slope',
-                'randomness-type',
-                'fmap-i',
-                'fmap-where',
-                'n-samples',
-                'acc1',
-                'acc5',
-                'freeze-level',
-                'optimizer',
-                'lr', 
-                'wd', 
-                'epochs', 
-                'batch-size', 
-                'data_aug',
-                'exp-dir',
-                'pretrained-path'
-            ]
-            data = [
-                args.dataset,
-                args.arch,
-                slopes_i[0],
-                slopes_i[1],
-                args.act_randomness_type,
-                args.fmap_i,
-                args.fmap_where,
-                n_samples_i,
-                f'{top1_acc:.2f}',
-                f'{top5_acc:.2f}',
-                args.freeze_level,
-                args.optimizer, 
-                args.lr, 
-                args.weight_decay, 
-                args.epochs, 
-                args.batch_size, 
-                args.data_aug,
-                exp_dir,
-                args.model_path
-            ]
-            if eval_i == 0:
-                assert os.path.isdir(exp_dir)
-                save_path = os.path.join(exp_dir, 'eval_results.csv')
-                with open(save_path, 'w') as fh:
-                    csv_writer = csv.writer(fh)
-                    csv_writer.writerow(header)
-                    csv_writer.writerow(data)
+
+        if run_N_inference_samples:
+            for cnt in range(n_samples):
+                output_tmp, final_inp = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
+                if cnt == 0:
+                    output = output_tmp
+                    softmax = F.softmax((output_tmp), dim=1)
+                else:
+                    output += output_tmp
+                    softmax += F.softmax((output_tmp), dim=1)
+            output /= (cnt+1)
+            softmax /= (cnt+1)
+        else:
+            output, final = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
+
+
+        loss = train_criterion(output, target)
+
+        if len(loss.shape) > 0: loss = loss.mean()
+
+        # TODO Quick check
+        assert not (type(output) is tuple)
+        #model_logits = output[0] if (type(output) is tuple) else output
+        if run_N_inference_samples:
+            model_logits = softmax
+        else:
+            model_logits = output
+
+        # measure accuracy and record loss
+        top1_acc = float('nan')
+        top5_acc = float('nan')
+        try:
+            maxk = min(5, model_logits.shape[-1])
+            if has_attr(args, "custom_accuracy"):
+                prec1, prec5 = args.custom_accuracy(model_logits, target)
             else:
-                with open(save_path, 'a') as fh:
-                    csv_writer = csv.writer(fh)
-                    csv_writer.writerow(data)
+                prec1, prec5 = helpers.accuracy(model_logits, target, topk=(1, maxk))
+                prec1, prec5 = prec1[0], prec5[0]
+
+            losses.update(loss.item(), inp.size(0))
+            top1.update(prec1, inp.size(0))
+            top5.update(prec5, inp.size(0))
+
+            top1_acc = top1.avg
+            top5_acc = top5.avg
+        except:
+            warnings.warn('Failed to calculate the accuracy.')
+
+        reg_term = 0.0
+        if has_attr(args, "regularizer"):
+            reg_term =  args.regularizer(model, inp, target)
+        loss = loss + reg_term
+
+        # compute gradient and do SGD step
+        if is_train:
+            opt.zero_grad()
+            if args.mixed_precision:
+                with amp.scale_loss(loss, opt) as sl:
+                    sl.backward()
+            else:
+                loss.backward()
+            opt.step()
+        elif adv and i == 0 and writer:
+            # add some examples to the tensorboard
+            nat_grid = make_grid(inp[:15, ...])
+            adv_grid = make_grid(final_inp[:15, ...])
+            writer.add_image('Nat input', nat_grid, epoch)
+            writer.add_image('Adv input', adv_grid, epoch)
+
+        # ITERATOR
+        desc = ('{2} Epoch:{0} | Loss {loss.avg:.4f} | '
+                '{1}1 {top1_acc:.3f} | {1}5 {top5_acc:.3f} | '
+                'Reg term: {reg} ||'.format( epoch, prec, loop_msg, 
+                loss=losses, top1_acc=top1_acc, top5_acc=top5_acc, reg=reg_term))
+
+        # USER-DEFINED HOOK
+        if has_attr(args, 'iteration_hook'):
+            args.iteration_hook(model, i, loop_type, inp, target)
+
+        iterator.set_description(desc)
+        iterator.refresh()
+
+    if writer is not None:
+        prec_type = 'adv' if adv else 'nat'
+        descs = ['loss', 'top1', 'top5']
+        vals = [losses, top1, top5]
+        for d, v in zip(descs, vals):
+            writer.add_scalar('_'.join([prec_type, loop_type, d]), v.avg,
+                              epoch)
 
     return top1.avg, losses.avg
 

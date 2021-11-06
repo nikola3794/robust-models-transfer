@@ -273,7 +273,7 @@ class AttackerModel(ch.nn.Module):
         self.normalizer = helpers.InputNormalize(dataset.mean, dataset.std)
         self.model = model
 
-    def forward(self, inp, min_slope=0.0, max_slope=1.0, rnd_act=False):
+    def forward(self, inp, **kwargs):
         """
         Main function for running inference and generating adversarial
         examples for a model.
@@ -316,5 +316,5 @@ class AttackerModel(ch.nn.Module):
 
         normalized_inp = self.normalizer(inp)
 
-        output = self.model(normalized_inp, min_slope=min_slope, max_slope=max_slope, rnd_act=rnd_act)
+        output = self.model(normalized_inp, **kwargs)
         return (output, inp)

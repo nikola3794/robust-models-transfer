@@ -5,10 +5,10 @@
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
 #BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
-#BSUB -J "mean_cifar100"
+#BSUB -J "rnd_dtd"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=cifar100
+DATA_SET=dtd
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -79,8 +79,8 @@ pwd
 
 ARCH=vit_deit_small_patch16_224
 MIN_SLOPE=0.0
-MAX_SLOPE=1.25
-RND_ACT=False
+MAX_SLOPE=2.5
+RND_ACT=True
 OPTIMIZER=adamw
 LR=0.0001
 

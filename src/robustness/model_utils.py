@@ -48,7 +48,7 @@ class DummyModel(nn.Module):
         self.model = model
 
     def forward(self, x, *args, **kwargs):
-        return self.model(x)
+        return self.model(x, **kwargs)
 
 def make_and_restore_model(*_, arch, dataset, resume_path=None,
          parallel=False, pytorch_pretrained=False, add_custom_forward=False):

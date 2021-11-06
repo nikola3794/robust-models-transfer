@@ -348,7 +348,7 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
             ctx = ch.enable_grad() if disable_no_grad else ch.no_grad() 
             with ctx:
                 prec1, nat_loss = _model_loop(args, 'val', val_loader, model, 
-                        None, epoch, False, writer, last_epoch=last_epoch)
+                        None, epoch, False, writer)
 
             # loader, model, epoch, input_adv_exs
             should_adv_eval = args.adv_eval or args.adv_train
@@ -424,7 +424,7 @@ def train_model(args, model, loaders, *, checkpoint=None, dp_device_ids=None,
 
     return model
 
-def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, last_epoch=False):
+def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer):
     """
     *Internal function* (refer to the train_model and eval_model functions for
     how to train and evaluate models).
@@ -446,10 +446,6 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, last_ep
     Returns:
         The average top1 accuracy and the average loss across the epoch.
     """
-    run_N_inference_samples = (last_epoch and (loop_type == "val"))
-    N=100
-    if run_N_inference_samples:
-        print(f"Running {N} inference samples to compute output")
     if not loop_type in ['train', 'val']:
         err_msg = "loop_type ({0}) must be 'train' or 'val'".format(loop_type)
         raise ValueError(err_msg)
@@ -502,28 +498,13 @@ def _model_loop(args, loop_type, loader, model, opt, epoch, adv, writer, last_ep
         # # TODO Nikola: Modified this
         # output, final_inp = model(inp, target=target, make_adv=adv,
         #                           **attack_kwargs)
-        
-
-        if run_N_inference_samples:
-            for cnt in range(N):
-                output_tmp, final_inp = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
-                if cnt == 0:
-                    output = output_tmp
-                else:
-                    output += output_tmp
-            output /= (cnt+1)
-        else:
-            output, final = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
-
+        output, final_inp = model(inp, min_slope=args.min_slope, max_slope=args.max_slope, rnd_act=args.rnd_act)
 
         loss = train_criterion(output, target)
 
         if len(loss.shape) > 0: loss = loss.mean()
 
-        # TODO Quick check
-        assert not (type(output) is tuple)
-        #model_logits = output[0] if (type(output) is tuple) else output
-        model_logits = output
+        model_logits = output[0] if (type(output) is tuple) else output
 
         # measure accuracy and record loss
         top1_acc = float('nan')

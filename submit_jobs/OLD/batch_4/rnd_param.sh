@@ -5,10 +5,10 @@
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
 #BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
-#BSUB -J "reg_cifar100"
+#BSUB -J "parm_dtd"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=cifar100
+DATA_SET=dtd
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -79,7 +79,7 @@ pwd
 
 ARCH=vit_deit_small_patch16_224
 MIN_SLOPE=0.0
-MAX_SLOPE=1.0
+MAX_SLOPE=0.23771584033966064
 RND_ACT=False
 OPTIMIZER=adamw
 LR=0.0001
@@ -95,7 +95,7 @@ python src/main_eval_samples.py \
   --data ${TMPDIR}/${DATA_SET_DIR} \
   --workers 8 \
   --arch $ARCH \
-  --model-path /cluster/work/cvl/specta/experiment_logs/image_net/nikola/20211006-202403-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar \
+  --model-path /cluster/work/cvl/specta/experiment_logs/image_net/nikola/20211006-213406-vit_relu_rnd_per_dim_param_deit_small_patch16_224/model_best.pth.tar \
   --min-slope $MIN_SLOPE \
   --max-slope $MAX_SLOPE \
   --rnd-act $RND_ACT \

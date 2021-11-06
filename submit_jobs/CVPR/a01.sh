@@ -78,7 +78,7 @@ cd ${PROJECT_ROOT_DIR}
 pwd
 
 MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/a090_110_20211101-135847-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar
-ARCH=vit_rnd_per_dim_fmap_i_deit_small_patch16_224
+ARCH=vit_rnd_per_dim_deit_small_patch16_224
 MIN_SLOPE=0.9
 MAX_SLOPE=1.1
 RND_TYPE=uniform

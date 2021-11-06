@@ -10,15 +10,15 @@ arch: spedcify_this
 model_path: specify_this
 pytorch_pretrained: True
 
-act_min_slope: spedcify_this
-act_max_slope: spedcify_this
+act_min_slope: -100
+act_max_slope: -100
 act_randomness_type: spedcify_this
-fmap_i: spedcify_this
+fmap_i: -100
 fmap_where: spedcify_this
 
-freeze_level: spedcify_this
+freeze_level: -100
 no_replace_last_layer: False
-additional_hidden: spedcify_this
+additional_hidden: -100
 cifar10_cifar10: False
 
 eval_only: Null

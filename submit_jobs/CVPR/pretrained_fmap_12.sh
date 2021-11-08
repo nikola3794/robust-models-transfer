@@ -5,10 +5,10 @@
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
 #BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
-#BSUB -J "rnd_dtd"
+#BSUB -J "rnd_cifar10"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=dtd
+DATA_SET=cifar10
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -100,7 +100,7 @@ for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
     WD=0.05
     EPOCHS=100
   fi
-  
+
   FMAP_WHERE_ALL=("before_act" "after_act")
   for FMAP_WHERE in ${FMAP_WHERE_ALL[*]}; do
 

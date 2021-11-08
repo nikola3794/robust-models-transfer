@@ -77,12 +77,12 @@ export PYTHONPATH=${PYTHONPATH}:${PROJECT_ROOT_DIR}
 cd ${PROJECT_ROOT_DIR}
 pwd
 
-MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/a000_200_20211101-154649-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar
+MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/pretrained_vit_relu_rnd_per_dim_deit_small_patch16_224/last.pth.tar
 ARCH=vit_rnd_per_dim_fmap_i_deit_small_patch16_224
-MIN_SLOPE=0.0
-MAX_SLOPE=2.0
+MIN_SLOPE=-1.0
+MAX_SLOPE=-1.0
 RND_TYPE=uniform
-FMAP_I=12
+FMAP_I=6
 
 RND=$(( RANDOM % 999 ))
 
@@ -92,13 +92,13 @@ for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
   if [ "$FREEZE_LEVEL" = "-2" ]; then
     ADDITIONAL_HIDDEN=2
     LR=0.0001
-    WD=0.0005
+    WD=0.0
     EPOCHS=100
   else
     ADDITIONAL_HIDDEN=0
     LR=0.00001
     WD=0.05
-    EPOCHS=150
+    EPOCHS=100
   fi
 
   FMAP_WHERE_ALL=("before_act" "after_act")

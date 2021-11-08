@@ -9,9 +9,32 @@ SCRIPT_DIR=submit_jobs/CVPR
 cd ${SCRIPT_DIR}
 pwd
 
-bsub < a01_fmap_i.sh
-bsub < a01.sh
-bsub < a05_fmap_i.sh
-bsub < a05.sh
-bsub < a10_fmap_i.sh
-bsub < a10.sh
+bsub < a01_fmap_6.sh
+bsub < a01_fmap_8.sh
+bsub < a01_fmap_10.sh
+bsub < a01_fmap_12.sh
+
+bsub < a05_fmap_6.sh
+bsub < a05_fmap_8.sh
+bsub < a05_fmap_10.sh
+bsub < a05_fmap_12.sh
+
+bsub < a10_fmap_6.sh
+bsub < a10_fmap_8.sh
+bsub < a10_fmap_10.sh
+bsub < a10_fmap_12.sh
+
+bsub < b05_fmap_6.sh
+bsub < b05_fmap_8.sh
+bsub < b05_fmap_10.sh
+bsub < b05_fmap_12.sh
+
+bsub < n05_fmap_6.sh
+bsub < n05_fmap_8.sh
+bsub < n05_fmap_10.sh
+bsub < n05_fmap_12.sh
+
+bsub < pretrained_fmap_6.sh
+bsub < pretrained_fmap_8.sh
+bsub < pretrained_fmap_10.sh
+bsub < pretrained_fmap_12.sh

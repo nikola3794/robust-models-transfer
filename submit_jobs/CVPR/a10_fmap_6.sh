@@ -77,11 +77,12 @@ export PYTHONPATH=${PYTHONPATH}:${PROJECT_ROOT_DIR}
 cd ${PROJECT_ROOT_DIR}
 pwd
 
-MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/a050_150_20211101-140057-vit_relu_rnd_per_dim_deit_small_patch16_224/model_best.pth.tar
-ARCH=vit_rnd_per_dim_deit_small_patch16_224
-MIN_SLOPE=0.5
-MAX_SLOPE=1.5
+MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/a000_200_20211101-154649-vit_relu_rnd_per_dim_deit_small_patch16_224/last.pth.tar
+ARCH=vit_rnd_per_dim_fmap_i_deit_small_patch16_224
+MIN_SLOPE=0.0
+MAX_SLOPE=2.0
 RND_TYPE=uniform
+FMAP_I=6
 
 RND=$(( RANDOM % 999 ))
 
@@ -91,31 +92,37 @@ for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
   if [ "$FREEZE_LEVEL" = "-2" ]; then
     ADDITIONAL_HIDDEN=2
     LR=0.0001
-    WD=0.0005
+    WD=0.0
     EPOCHS=100
   else
     ADDITIONAL_HIDDEN=0
     LR=0.00001
     WD=0.05
-    EPOCHS=150
+    EPOCHS=100
   fi
 
-  EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-${RND_TYPE}-freeze_level-${FREEZE_LEVEL}-add_hidden-${ADDITIONAL_HIDDEN}-${RND}
-  
-  python src/main_new.py \
-    --config ${PROJECT_ROOT_DIR}/submit_jobs/CVPR/default_config.yaml \
-    --exp-name $EXP_NAME \
-    --out-dir /cluster/work/cvl/specta/experiment_logs/image_net/transfer-learning/ \
-    --dataset $DATA_SET \
-    --data ${TMPDIR}/${DATA_SET_DIR} \
-    --arch $ARCH \
-    --model-path $MODEL_PATH \
-    --act-min-slope $MIN_SLOPE \
-    --act-max-slope $MAX_SLOPE \
-    --act-randomness-type $RND_TYPE \
-    --freeze-level $FREEZE_LEVEL \
-    --additional-hidden $ADDITIONAL_HIDDEN \
-    --lr $LR \
-    --weight-decay $WD \
-    --epochs $EPOCHS 
+  FMAP_WHERE_ALL=("before_act" "after_act")
+  for FMAP_WHERE in ${FMAP_WHERE_ALL[*]}; do
+
+    EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-${RND_TYPE}-fmap-${FMAP_I}-${FMAP_WHERE}-freeze_level-${FREEZE_LEVEL}-add_hidden-${ADDITIONAL_HIDDEN}-${RND}
+    
+    python src/main_new.py \
+      --config ${PROJECT_ROOT_DIR}/submit_jobs/CVPR/default_config.yaml \
+      --exp-name $EXP_NAME \
+      --out-dir /cluster/work/cvl/specta/experiment_logs/image_net/transfer-learning/ \
+      --dataset $DATA_SET \
+      --data ${TMPDIR}/${DATA_SET_DIR} \
+      --arch $ARCH \
+      --model-path $MODEL_PATH \
+      --act-min-slope $MIN_SLOPE \
+      --act-max-slope $MAX_SLOPE \
+      --act-randomness-type $RND_TYPE \
+      --fmap-i $FMAP_I \
+      --fmap-where $FMAP_WHERE \
+      --freeze-level $FREEZE_LEVEL \
+      --additional-hidden $ADDITIONAL_HIDDEN \
+      --lr $LR \
+      --weight-decay $WD \
+      --epochs $EPOCHS 
+  done
 done

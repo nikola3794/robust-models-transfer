@@ -5,10 +5,10 @@
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
 #BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
-#BSUB -J "rnd_flowers"
+#BSUB -J "rnd_cifar10"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=flowers
+DATA_SET=cifar10
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -77,7 +77,7 @@ export PYTHONPATH=${PYTHONPATH}:${PROJECT_ROOT_DIR}
 cd ${PROJECT_ROOT_DIR}
 pwd
 
-MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/pretrained_vit_relu_rnd_per_dim_deit_small_patch16_224/last.pth.tar
+MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/pretrained_RELU_20211109-012630-vit_relu_rnd_per_dim_deit_small_patch16_224/last.pth.tar
 ARCH=vit_rnd_per_dim_fmap_i_deit_small_patch16_224
 MIN_SLOPE=-1.0
 MAX_SLOPE=-1.0

@@ -5,10 +5,10 @@
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
 #BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
-#BSUB -J "rnd_flowers"
+#BSUB -J "rnd_cifar100"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=flowers
+DATA_SET=cifar100
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -77,16 +77,16 @@ export PYTHONPATH=${PYTHONPATH}:${PROJECT_ROOT_DIR}
 cd ${PROJECT_ROOT_DIR}
 pwd
 
-MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/a000_200_20211101-154649-vit_relu_rnd_per_dim_deit_small_patch16_224/last.pth.tar
+MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/a090_110_20211101-135847-vit_relu_rnd_per_dim_deit_small_patch16_224/last.pth.tar
 ARCH=vit_rnd_per_dim_fmap_i_deit_small_patch16_224
-MIN_SLOPE=0.0
-MAX_SLOPE=2.0
+MIN_SLOPE=0.9
+MAX_SLOPE=1.1
 RND_TYPE=uniform
-FMAP_I=12
+FMAP_I=6
 
 RND=$(( RANDOM % 999 ))
 
-FREEZE_LEVEL_ALL=("-2" "-1")
+FREEZE_LEVEL_ALL=("-2")
 for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
 
   if [ "$FREEZE_LEVEL" = "-2" ]; then
@@ -101,7 +101,7 @@ for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
     EPOCHS=100
   fi
 
-  FMAP_WHERE_ALL=("before_act" "after_act")
+  FMAP_WHERE_ALL=("after_act")
   for FMAP_WHERE in ${FMAP_WHERE_ALL[*]}; do
 
     EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-${RND_TYPE}-fmap-${FMAP_I}-${FMAP_WHERE}-freeze_level-${FREEZE_LEVEL}-add_hidden-${ADDITIONAL_HIDDEN}-${RND}
@@ -109,7 +109,7 @@ for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
     python src/main_new.py \
       --config ${PROJECT_ROOT_DIR}/submit_jobs/CVPR/default_config.yaml \
       --exp-name $EXP_NAME \
-      --out-dir /cluster/work/cvl/specta/experiment_logs/image_net/transfer-learning/ \
+      --out-dir /cluster/work/cvl/specta/experiment_logs/image_net/transfer-learning-round2/ \
       --dataset $DATA_SET \
       --data ${TMPDIR}/${DATA_SET_DIR} \
       --arch $ARCH \

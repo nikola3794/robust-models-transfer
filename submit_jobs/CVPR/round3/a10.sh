@@ -5,10 +5,10 @@
 #BSUB -R "rusage[mem=4096]" # MB per CPU core
 #BSUB -R "rusage[ngpus_excl_p=1]" # number of GPU cores
 #BSUB -R "select[gpu_mtotal0>=8240]" # MB per GPU core
-#BSUB -J "rnd_caltech256"
+#BSUB -J "rnd_cifar10"
 #BSUB -R lca # workaround for the current wandb cluster bug
 
-DATA_SET=caltech256
+DATA_SET=cifar10
 
 if [ "$DATA_SET" = "aircraft" ]; then
   ZIP_FILE_NAME=fgvc-aircraft-2013b.tar.gz
@@ -79,8 +79,8 @@ pwd
 
 MODEL_PATH=/cluster/work/cvl/specta/experiment_logs/image_net/rnd_relu/a000_200_20211101-154649-vit_relu_rnd_per_dim_deit_small_patch16_224/last.pth.tar
 ARCH=vit_rnd_per_dim_deit_small_patch16_224
-MIN_SLOPE=0.0
-MAX_SLOPE=2.0
+MIN_SLOPE=-1.0
+MAX_SLOPE=-1.0
 RND_TYPE=uniform
 FMAP_WHERE=before_act
 
@@ -94,7 +94,7 @@ RND=$(( RANDOM % 999 ))
 
 EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-${RND_TYPE}-${FMAP_WHERE}-freeze_level-${FREEZE_LEVEL}-add_hidden-${ADDITIONAL_HIDDEN}-${RND}
 
-python src/main_new.py \
+python src/main_transfer_learning.py \
   --config ${PROJECT_ROOT_DIR}/submit_jobs/CVPR/default_config.yaml \
   --exp-name $EXP_NAME \
   --out-dir /cluster/work/cvl/specta/experiment_logs/image_net/transfer-learning-round3/ \

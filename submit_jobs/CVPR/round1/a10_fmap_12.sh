@@ -101,7 +101,7 @@ for FREEZE_LEVEL in ${FREEZE_LEVEL_ALL[*]}; do
     EPOCHS=100
   fi
 
-  FMAP_WHERE_ALL=("before_act" "after_act")
+  FMAP_WHERE_ALL=("after_act")
   for FMAP_WHERE in ${FMAP_WHERE_ALL[*]}; do
 
     EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-${RND_TYPE}-fmap-${FMAP_I}-${FMAP_WHERE}-freeze_level-${FREEZE_LEVEL}-add_hidden-${ADDITIONAL_HIDDEN}-${RND}

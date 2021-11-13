@@ -94,6 +94,7 @@ RND=$(( RANDOM % 999 ))
 
 EXP_NAME=${DATA_SET}-${ARCH}-slope-${MIN_SLOPE}-${MAX_SLOPE}-${RND_TYPE}-${FMAP_WHERE}-freeze_level-${FREEZE_LEVEL}-add_hidden-${ADDITIONAL_HIDDEN}-${RND}
 
+
 python src/main_transfer_learning.py \
   --config ${PROJECT_ROOT_DIR}/submit_jobs/CVPR/default_config.yaml \
   --exp-name $EXP_NAME \

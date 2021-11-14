@@ -9,6 +9,7 @@ SCRIPT_DIR=submit_jobs/CVPR/round3
 cd ${SCRIPT_DIR}
 pwd
 
+
 bsub < deterministic.sh
 bsub < a01.sh
 bsub < a05.sh
